@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò Chơi Số Học Vui Nhộn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f9ff; /* Light blue background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .game-container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #a78bfa; /* Purple border */
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #4c1d95; /* Dark purple text */
+        }
+        .progress-bar-container {
+            background-color: #e0e7ff; /* Lighter purple */
+            border-radius: 10px;
+            height: 15px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #8b5cf6; /* Main purple */
+            border-radius: 10px;
+            transition: width 0.3s ease-in-out;
+        }
+        .question-area {
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .number-display {
+            font-size: 6rem; /* Large emoji size */
+            margin-bottom: 20px;
+            animation: bounceIn 0.8s ease-out;
+        }
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .option-button {
+            background-color: #f5f3ff; /* Very light purple */
+            color: #6d28d9; /* Medium purple */
+            border: 3px solid #a78bfa; /* Purple border */
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 2.5rem; /* Large number on button */
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .option-button:hover {
+            background-color: #e8e2ff; /* Slightly darker light purple */
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .option-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .feedback-message {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 20px;
+            min-height: 30px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+        .feedback-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .feedback-message.correct {
+            color: #10b981; /* Green */
+        }
+        .feedback-message.wrong {
+            color: #ef4444; /* Red */
+        }
+        .start-button, .play-again-button {
+            background-color: #8b5cf6; /* Main purple */
+            color: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+            border: none;
+        }
+        .start-button:hover, .play-again-button:hover {
+            background-color: #7c3aed; /* Darker purple */
+            transform: translateY(-2px);
+        }
+        .start-button:active, .play-again-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .hidden {
+            display: none;
+        }
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #8b5cf6;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-top: 20px;
+        }
+
+        /* Animations */
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer" class="game-container">
+        <div id="startScreen" class="flex flex-col items-center justify-center h-full">
+            <h1 class="text-4xl font-bold text-purple-800 mb-8">Chào mừng bé đến với Trò Chơi Số Học! 👋</h1>
+            <p class="text-xl text-gray-700 mb-10">Hãy cùng học và ghi nhớ các chữ số từ 0 đến 10 nhé!</p>
+            <button id="startButton" class="start-button">Bắt Đầu Chơi! ✨</button>
+        </div>
+
+        <div id="gamePlayScreen" class="hidden">
+            <div class="header">
+                <div class="score">Điểm: <span id="scoreDisplay">0</span></div>
+                <div class="round">Vòng: <span id="roundDisplay">1</span>/5</div>
+            </div>
+            <div class="progress-bar-container">
+                <div id="progressBar" class="progress-bar" style="width: 0%;"></div>
+            </div>
+
+            <div class="question-area">
+                <p class="text-xl text-gray-600 mb-4">Đây là số mấy? 🤔</p>
+                <div id="numberDisplay" class="number-display"></div>
+                <div id="loadingSpinner" class="loading-spinner hidden"></div>
+            </div>
+
+            <div id="optionsContainer" class="options-container hidden">
+                <!-- Options will be dynamically inserted here -->
+            </div>
+
+            <div id="feedbackMessage" class="feedback-message"></div>
+        </div>
+
+        <div id="endScreen" class="hidden flex flex-col items-center justify-center h-full">
+            <h2 class="text-4xl font-bold text-purple-800 mb-6">Trò Chơi Kết Thúc! 🎉</h2>
+            <p class="text-2xl text-gray-700 mb-4">Tổng điểm của bé là: <span id="finalScoreDisplay" class="font-bold text-purple-600">0</span></p>
+            <p class="text-xl text-gray-600 mb-10">Bé giỏi lắm! Cố gắng hơn nữa nhé! 💖</p>
+            <button id="playAgainButton" class="play-again-button">Chơi Lại! 🚀</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // Global variables for Firebase configuration and app ID
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Authenticate user
+        async function authenticateFirebase() {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                console.log("Firebase authentication successful.");
+            } catch (error) {
+                console.error("Firebase authentication failed:", error);
+            }
+        }
+
+        // Game state variables
+        let score = 0;
+        let currentQuestionIndex = 0;
+        let currentRound = 1;
+        const totalRounds = 5;
+        const questionsPerRound = [4, 4, 5, 5, 4]; // Total 22 questions
+        let questions = [];
+
+        // DOM elements
+        const startScreen = document.getElementById('startScreen');
+        const gamePlayScreen = document.getElementById('gamePlayScreen');
+        const endScreen = document.getElementById('endScreen');
+        const startButton = document.getElementById('startButton');
+        const playAgainButton = document.getElementById('playAgainButton');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const roundDisplay = document.getElementById('roundDisplay');
+        const progressBar = document.getElementById('progressBar');
+        const numberDisplay = document.getElementById('numberDisplay');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        const finalScoreDisplay = document.getElementById('finalScoreDisplay');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        // Emoji mapping for numbers
+        const numberEmojis = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+        const numberNames = [
+            'số không', 'số một', 'số hai', 'số ba', 'số bốn',
+            'số năm', 'số sáu', 'số bảy', 'số tám', 'số chín', 'số mười'
+        ];
+
+        // --- Utility functions for Audio conversion ---
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        function pcmToWav(pcm16, sampleRate) {
+            const numChannels = 1;
+            const bytesPerSample = 2; // 16-bit PCM
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+
+            const wavBuffer = new ArrayBuffer(44 + pcm16.length * bytesPerSample);
+            const view = new DataView(wavBuffer);
+
+            // RIFF chunk descriptor
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcm16.length * bytesPerSample, true); // ChunkSize
+            writeString(view, 8, 'WAVE');
+
+            // FMT sub-chunk
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
+            view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+            view.setUint16(22, numChannels, true); // NumChannels
+            view.setUint32(24, sampleRate, true); // SampleRate
+            view.setUint32(28, byteRate, true); // ByteRate
+            view.setUint16(32, blockAlign, true); // BlockAlign
+            view.setUint16(34, bytesPerSample * 8, true); // BitsPerSample
+
+            // DATA sub-chunk
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcm16.length * bytesPerSample, true); // Subchunk2Size
+
+            // Write PCM data
+            for (let i = 0; i < pcm16.length; i++) {
+                view.setInt16(44 + i * bytesPerSample, pcm16[i], true);
+            }
+
+            return new Blob([wavBuffer], { type: 'audio/wav' });
+        }
+
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        // --- TTS Functions using Gemini API ---
+        async function playTTSAudio(textToSpeak, voiceName = "Kore") {
+            try {
+                loadingSpinner.classList.remove('hidden'); // Show loading spinner
+                const payload = {
+                    contents: [{
+                        parts: [{ text: textToSpeak }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: { voiceName: voiceName }
+                            }
+                        }
+                    },
+                    model: "gemini-2.5-flash-preview-tts"
+                };
+                const apiKey = ""; // Canvas will provide this at runtime
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const audioData = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 16000; // Default to 16kHz if not found
+
+                    const pcmData = base64ToArrayBuffer(audioData);
+                    const pcm16 = new Int16Array(pcmData);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+
+                    return new Promise((resolve) => {
+                        const audio = new Audio(audioUrl);
+                        audio.onended = () => {
+                            URL.revokeObjectURL(audioUrl); // Clean up
+                            loadingSpinner.classList.add('hidden'); // Hide loading spinner
+                            resolve();
+                        };
+                        audio.onerror = (e) => {
+                            console.error("Audio playback error:", e);
+                            URL.revokeObjectURL(audioUrl);
+                            loadingSpinner.classList.add('hidden'); // Hide loading spinner
+                            resolve(); // Resolve even on error to unblock game flow
+                        };
+                        audio.play().catch(e => {
+                            console.error("Error playing audio:", e);
+                            loadingSpinner.classList.add('hidden'); // Hide loading spinner
+                            resolve(); // Resolve even on play error
+                        });
+                    });
+                } else {
+                    console.error("Invalid audio data or mime type from TTS API:", result);
+                    loadingSpinner.classList.add('hidden'); // Hide loading spinner
+                    return Promise.resolve(); // Resolve to unblock game flow
+                }
+            } catch (error) {
+                console.error("Error calling Gemini TTS API:", error);
+                loadingSpinner.classList.add('hidden'); // Hide loading spinner
+                return Promise.resolve(); // Resolve to unblock game flow
+            }
+        }
+
+        // --- Game Logic ---
+
+        // Generates a set of questions for the game
+        function generateQuestions() {
+            const allPossibleNumbers = Array.from({ length: 11 }, (_, i) => i); // 0 to 10
+            let generatedQuestions = [];
+            let questionPool = [];
+
+            // Create a pool of questions, ensuring each number appears multiple times
+            for (let i = 0; i < 3; i++) { // Each number appears at least 3 times
+                questionPool = questionPool.concat(allPossibleNumbers);
+            }
+            // Shuffle the pool to randomize question order
+            questionPool.sort(() => Math.random() - 0.5);
+
+            // Ensure we have at least 22 questions, add more if needed
+            while (questionPool.length < 22) {
+                questionPool = questionPool.concat(allPossibleNumbers.sort(() => Math.random() - 0.5));
+            }
+
+            // Select 22 questions from the shuffled pool
+            for (let i = 0; i < 22; i++) {
+                const correctNumber = questionPool[i % questionPool.length]; // Cycle through pool if needed
+                let options = new Set();
+                options.add(correctNumber);
+
+                // Generate 3 unique incorrect options
+                while (options.size < 4) {
+                    let randomOption = Math.floor(Math.random() * 11); // 0 to 10
+                    if (randomOption !== correctNumber) {
+                        options.add(randomOption);
+                    }
+                }
+                generatedQuestions.push({
+                    number: correctNumber,
+                    options: Array.from(options).sort(() => Math.random() - 0.5) // Shuffle options
+                });
+            }
+            return generatedQuestions;
+        }
+
+        // Displays the current question
+        async function displayQuestion() {
+            const question = questions[currentQuestionIndex];
+            if (!question) {
+                endGame();
+                return;
+            }
+
+            // Reset UI for new question
+            feedbackMessage.classList.remove('show', 'correct', 'wrong');
+            numberDisplay.textContent = ''; // Clear number display
+            optionsContainer.innerHTML = ''; // Clear options
+            optionsContainer.classList.add('hidden'); // Hide options initially
+
+            // Show current number
+            numberDisplay.textContent = numberEmojis[question.number];
+
+            // Play number audio and then show options
+            await playTTSAudio(numberNames[question.number]);
+
+            // Display options after audio
+            question.options.forEach(option => {
+                const button = document.createElement('button');
+                button.className = 'option-button';
+                button.textContent = numberEmojis[option];
+                button.dataset.value = option;
+                button.onclick = () => checkAnswer(parseInt(option));
+                optionsContainer.appendChild(button);
+            });
+            optionsContainer.classList.remove('hidden'); // Show options
+            optionsContainer.classList.add('fade-in'); // Add fade-in animation
+
+            updateProgress();
+        }
+
+        // Checks the selected answer
+        async function checkAnswer(selectedValue) {
+            const currentQuestion = questions[currentQuestionIndex];
+            const isCorrect = (selectedValue === currentQuestion.number);
+
+            // Disable all buttons to prevent multiple clicks
+            Array.from(optionsContainer.children).forEach(button => button.disabled = true);
+
+            if (isCorrect) {
+                score += 10; // Award points for correct answer
+                scoreDisplay.textContent = score;
+                feedbackMessage.textContent = 'Bé chọn đúng rồi, bé giỏi quá! 🎉';
+                feedbackMessage.classList.add('show', 'correct');
+                await playTTSAudio('bé chọn đúng rồi, bé giỏi quá');
+                nextQuestion();
+            } else {
+                feedbackMessage.textContent = 'Bé chọn sai rồi, hãy chọn lại nhé! ❌';
+                feedbackMessage.classList.add('show', 'wrong');
+                await playTTSAudio('bé chọn sai rồi, hãy chọn lại nhé');
+                // Re-enable buttons and re-display the same question with shuffled options
+                Array.from(optionsContainer.children).forEach(button => button.disabled = false);
+                feedbackMessage.classList.remove('show', 'correct', 'wrong');
+                // Shuffle options for the current question
+                questions[currentQuestionIndex].options.sort(() => Math.random() - 0.5);
+                displayQuestion(); // Re-display the same question
+            }
+        }
+
+        // Moves to the next question or ends the game/round
+        function nextQuestion() {
+            currentQuestionIndex++;
+            // Check if current round is complete
+            let questionsInCurrentAndPreviousRounds = 0;
+            for (let i = 0; i < currentRound - 1; i++) {
+                questionsInCurrentAndPreviousRounds += questionsPerRound[i];
+            }
+
+            if (currentQuestionIndex >= questionsInCurrentAndPreviousRounds + questionsPerRound[currentRound - 1]) {
+                // Round ended
+                if (currentRound < totalRounds) {
+                    currentRound++;
+                    roundDisplay.textContent = currentRound;
+                    // You could add a "Round X Complete" message here
+                    setTimeout(displayQuestion, 500); // Small delay before next round's first question
+                } else {
+                    // Game ended
+                    endGame();
+                    return;
+                }
+            }
+
+            if (currentQuestionIndex < questions.length) {
+                displayQuestion();
+            } else {
+                endGame();
+            }
+        }
+
+        // Updates the progress bar
+        function updateProgress() {
+            const totalQuestionsAnsweredInCurrentRound = currentQuestionIndex - questionsPerRound.slice(0, currentRound - 1).reduce((a, b) => a + b, 0);
+            const progress = (totalQuestionsAnsweredInCurrentRound / questionsPerRound[currentRound - 1]) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Starts the game
+        async function startGame() {
+            score = 0;
+            currentQuestionIndex = 0;
+            currentRound = 1;
+            questions = generateQuestions(); // Generate all 22 questions
+            scoreDisplay.textContent = score;
+            roundDisplay.textContent = currentRound;
+            progressBar.style.width = '0%';
+
+            startScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+            gamePlayScreen.classList.remove('hidden');
+
+            await authenticateFirebase(); // Authenticate before starting game logic
+            displayQuestion();
+        }
+
+        // Ends the game and shows final score
+        function endGame() {
+            gamePlayScreen.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+            finalScoreDisplay.textContent = score;
+        }
+
+        // Event Listeners
+        startButton.addEventListener('click', startGame);
+        playAgainButton.addEventListener('click', startGame);
+
+        // Initial setup on window load
+        window.onload = function() {
+            // Ensure start screen is visible initially
+            startScreen.classList.remove('hidden');
+            gamePlayScreen.classList.add('hidden');
+            endScreen.classList.add('hidden');
+        };
+    </script>
+</body>
+</html>
